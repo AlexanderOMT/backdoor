@@ -1,16 +1,24 @@
 
 
-import socket
+import socket, sys
 
-with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-    s.connect(('192.168.43.88', 4444))
-    s.sendall(b"Hi, this is a test server")
+ip = '192.168.1.147'
 
-    while 1:
-        data = s.recv(1024)
-        if not data:
-            break
-        print('Received: ', data)
-        s.send(data)
+while True:    
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect((ip, 4444))
+            sys.stdout.write(f'\r[*] Connected to {ip} ...')
+            s.sendall(b"Hi, this is a test server")
+
+            while True:
+                data = s.recv(1024)
+                if not data:
+                    break
+                sys.stdout.write(f'\r\n[+] Received: {data}\n')
+                s.send(data)
+    except Exception:
+        sys.stdout.write('\x1b[2K')
+        sys.stdout.write(f'\r[*] Waiting for connection ...')
 
 #print(f"Received {data!r}")
