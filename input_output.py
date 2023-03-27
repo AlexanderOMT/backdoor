@@ -8,22 +8,14 @@ class CustomStandardStream():
     def __init__(self, thread_read_name, thread_write_name) -> None:
         self.thread_read_name = thread_read_name
         self.thread_write_name = thread_write_name
-        self.send_to = ''
 
     def handle_io(self, thread_name, notify = None):
-        # TODO refractor : self.send_to and notify are not well programmed
-        sys.stdout.write('\x1b[2K') 
+        sys.stdout.write('\x1b[2K')
         if thread_name == self.thread_write_name:
-            self.send_to = notify
-            sys.stdout.write(f'\r{self.send_to} >> ')
-            res = ''
-            for line in sys.stdin.readline(): 
-                res += line
-            return res
-
+            sys.stdout.write(f'\r{notify} >> ')
+            return input() 
         else:
-            sys.stdout.write(f'\r\r<< Server read:\n\n{notify}\n')
-            sys.stdout.write(f'\r{self.send_to} >> ')
+            sys.stdout.write(f'\r[+] Server read:\n\n{notify}\n')
 
-    class CustomIOException(Exception):
-        pass
+class CustomIOException(Exception):
+    pass
