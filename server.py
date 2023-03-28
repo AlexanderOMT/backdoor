@@ -14,6 +14,8 @@ import base64
 import json
 import subprocess
 
+import command
+
 class Server:
     def __init__(self, host, port):
         self.host, self.port = host, port
@@ -48,7 +50,17 @@ class Server:
                 
                 if self.buffer.split(' ')[0] == 'download':
                     name_file = self.buffer.split(' ')[1].rstrip()
-                    self.download_file(self.PATH_LOOT + name_file, content=read)
+
+                    receiver = command.Receiver()
+
+                    command1 = command.DownloadFileCommand(receiver)
+
+                    invoker = command.Invoker()
+                    invoker.register('DownloadFileCommand', command1)
+
+                    invoker.execute('DownloadFileCommand', path=self.PATH_LOOT + name_file, content=read)
+
+                    #self.download_file(self.PATH_LOOT + name_file, content=read)
                     self.handle_io_lock.acquire()
                     self.standard_stream.handle_io(thread_name=threading.current_thread().name, notify='Download succesful!')
                     self.handle_io_lock.release()
@@ -66,7 +78,7 @@ class Server:
             except socket.timeout as e:
                 pass
             except Exception as e:
-                #print(e)
+                print(e.with_traceback())
                 pass
 
         client_socket.close()
